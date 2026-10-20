@@ -1,0 +1,72 @@
+# ==========================================
+# 生产环境配置
+# ==========================================
+# ⚠️ 注意：生产环境必须通过环境变量设置所有敏感信息
+
+spring:
+  application:
+    name: backend
+  datasource:
+    url: ${DB_URL:jdbc:mysql://localhost:3306/backend_asagami?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai}
+    username: ${DB_USERNAME:root}
+    password: ${DB_PASSWORD:123456}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    # 生产环境建议启用连接池优化
+    hikari:
+      maximum-pool-size: 20
+      minimum-idle: 5
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:123456}
+      database: ${REDIS_DATABASE:0}
+      timeout: 3000ms
+      lettuce:
+        pool:
+          # 生产环境增加连接池大小
+          max-active: 20
+          max-idle: 10
+          min-idle: 5
+          max-wait: 5000ms
+
+mybatis:
+  mapper-locations: classpath:mapper/*.xml
+  configuration:
+    map-underscore-to-camel-case: true
+    # 生产环境可以开启SQL日志用于调试（可选）
+    # log-impl: org.apache.ibatis.logging.slf4j.Slf4jImpl
+
+pagehelper:
+  helper-dialect: mysql
+  reasonable: true
+  support-methods-arguments: true
+  page-size-zero: false
+
+jwt:
+  secret: ${JWT_SECRET:CHANGE_THIS_TO_A_VERY_LONG_RANDOM_STRING_FOR_PRODUCTION}
+  # 生产环境建议更短的过期时间，如30分钟(1800000ms)
+  expiration: ${JWT_EXPIRATION:1800000}
+
+aliyun:
+  oss:
+    endpoint: ${OSS_ENDPOINT:oss-cn-beijing.aliyuncs.com}
+    access-key-id: ${OSS_ACCESS_KEY_ID:CHANGE_THIS_IN_PRODUCTION}
+    access-key-secret: ${OSS_ACCESS_KEY_SECRET:CHANGE_THIS_IN_PRODUCTION}
+    bucket-name: ${OSS_BUCKET_NAME:web-sky-dwk}
+
+server:
+  port: ${SERVER_PORT:8081}
+  # 生产环境可以添加额外的服务器配置
+  # tomcat:
+  #   threads:
+  #     max: 200
+  #     min-spare: 10
+  #   accept-count: 100

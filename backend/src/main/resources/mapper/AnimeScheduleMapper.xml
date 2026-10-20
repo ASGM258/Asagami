@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.anime.manager.mapper.AnimeScheduleMapper">
+
+    <!-- 根据ID查询排期记录 -->
+    <select id="findById" resultType="com.anime.manager.entity.AnimeSchedule">
+        SELECT * FROM anime_schedule WHERE id = #{id}
+    </select>
+
+    <!-- 根据星期几查询当天更新的动漫列表 -->
+    <select id="findByDayOfWeek" resultType="com.anime.manager.entity.AnimeSchedule">
+        SELECT * FROM anime_schedule 
+        WHERE dayOfWeek = #{dayOfWeek} 
+        ORDER BY rating DESC
+    </select>
+
+    <!-- 查询所有排期记录 -->
+    <select id="findAll" resultType="com.anime.manager.entity.AnimeSchedule">
+        SELECT * FROM anime_schedule 
+        ORDER BY 
+            CASE WHEN dayOfWeek IS NULL THEN 8 ELSE dayOfWeek END ASC,
+            rating DESC
+    </select>
+
+    <!-- 根据日文标题查询排期记录 -->
+    <select id="findByTitle" resultType="com.anime.manager.entity.AnimeSchedule">
+        SELECT * FROM anime_schedule WHERE title = #{title}
+    </select>
+
+    <!-- 插入排期记录 -->
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO anime_schedule(
+            main_id, 
+            title, 
+            coverImage, 
+            rating, 
+            episodes, 
+            status, 
+            dayOfWeek, 
+            updateTime
+        ) VALUES (
+            #{mainId}, 
+            #{title}, 
+            #{coverImage}, 
+            #{rating}, 
+            #{episodes}, 
+            #{status}, 
+            #{dayOfWeek}, 
+            #{updateTime}
+        )
+    </insert>
+
+    <!-- 批量插入排期记录 -->
+    <insert id="batchInsert">
+        INSERT INTO anime_schedule(
+            main_id, 
+            title, 
+            coverImage, 
+            rating, 
+            episodes, 
+            status, 
+            dayOfWeek, 
+            updateTime
+        ) VALUES 
+        <foreach collection="list" item="item" separator=",">
+            (
+                #{item.mainId}, 
+                #{item.title}, 
+                #{item.coverImage}, 
+                #{item.rating}, 
+                #{item.episodes}, 
+                #{item.status}, 
+                #{item.dayOfWeek}, 
+                #{item.updateTime}
+            )
+        </foreach>
+    </insert>
+
+    <!-- 更新排期记录（只更新非空字段） -->
+    <update id="update">
+        UPDATE anime_schedule
+        <set>
+            <if test="mainId != null">
+                main_id = #{mainId},
+            </if>
+            <if test="title != null">
+                title = #{title},
+            </if>
+            <if test="coverImage != null">
+                coverImage = #{coverImage},
+            </if>
+            <if test="rating != null">
+                rating = #{rating},
+            </if>
+            <if test="episodes != null">
+                episodes = #{episodes},
+            </if>
+            <if test="status != null">
+                status = #{status},
+            </if>
+            <if test="dayOfWeek != null">
+                dayOfWeek = #{dayOfWeek},
+            </if>
+            <if test="updateTime != null">
+                updateTime = #{updateTime},
+            </if>
+        </set>
+        WHERE id = #{id}
+    </update>
+
+    <!-- 删除排期记录 -->
+    <delete id="deleteById">
+        DELETE FROM anime_schedule WHERE id = #{id}
+    </delete>
+
+    <!-- 清空所有排期数据 -->
+    <delete id="clearAll">
+        DELETE FROM anime_schedule
+    </delete>
+
+    <!-- 根据星期几查询排期记录（返回DTO，包含anime表的id） -->
+    <select id="findDTOByDayOfWeek" resultType="com.anime.manager.dto.AnimeScheduleDTO">
+        SELECT 
+            COALESCE(a.id, s.id) AS id,
+            s.main_id AS mainId,
+            s.title,
+            s.coverImage,
+            s.rating,
+            s.episodes,
+            s.status,
+            s.dayOfWeek,
+            s.updateTime
+        FROM anime_schedule s
+        LEFT JOIN anime a ON s.main_id = a.id
+        <where>
+            <if test="dayOfWeek != null">
+                <!-- dayOfWeek=8 表示查询待定的动漫（数据库中为NULL） -->
+                <choose>
+                    <when test="dayOfWeek == 8">
+                        AND s.dayOfWeek IS NULL
+                    </when>
+                    <otherwise>
+                        AND s.dayOfWeek = #{dayOfWeek}
+                    </otherwise>
+                </choose>
+            </if>
+        </where>
+        ORDER BY 
+            CASE WHEN s.dayOfWeek IS NULL THEN 8 ELSE s.dayOfWeek END ASC,
+            s.rating DESC
+    </select>
+
+    <!-- 随机获取指定数量的轮播图数据 -->
+    <select id="findRandomBanners" resultType="com.anime.manager.dto.BannerItem">
+        SELECT 
+            a.id AS animeId,
+            s.title,
+            s.coverImage,
+            a.synopsis,
+            s.rating,
+            s.status
+        FROM anime_schedule s
+        LEFT JOIN anime a ON s.main_id = a.id
+        WHERE s.coverImage IS NOT NULL
+        ORDER BY RAND()
+        LIMIT #{limit}
+    </select>
+
+</mapper>

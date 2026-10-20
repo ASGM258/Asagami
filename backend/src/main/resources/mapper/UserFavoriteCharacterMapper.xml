@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.anime.manager.mapper.UserFavoriteCharacterMapper">
+
+    <!-- 根据用户ID和角色ID查询喜欢记录 -->
+    <select id="findByUserIdAndCharacterId" resultType="com.anime.manager.entity.UserFavoriteCharacter">
+        SELECT 
+            id,
+            user_id AS userId,
+            character_id AS characterId,
+            favorite_status AS favoriteStatus,
+            created_at AS createdAt,
+            updated_at AS updatedAt
+        FROM user_favorite_character
+        WHERE user_id = #{userId} AND character_id = #{characterId}
+    </select>
+
+    <!-- 插入喜欢记录（动态SQL） -->
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO user_favorite_character
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="userId != null">user_id,</if>
+            <if test="characterId != null">character_id,</if>
+            <if test="favoriteStatus != null">favorite_status,</if>
+            created_at,
+            updated_at
+        </trim>
+        <trim prefix="VALUES (" suffix=")" suffixOverrides=",">
+            <if test="userId != null">#{userId},</if>
+            <if test="characterId != null">#{characterId},</if>
+            <if test="favoriteStatus != null">#{favoriteStatus},</if>
+            NOW(),
+            NOW()
+        </trim>
+    </insert>
+
+    <!-- 更新喜欢记录（动态SQL） -->
+    <update id="updateSelective">
+        UPDATE user_favorite_character
+        <set>
+            <if test="favoriteStatus != null">
+                favorite_status = #{favoriteStatus},
+            </if>
+            updated_at = NOW()
+        </set>
+        WHERE id = #{id}
+    </update>
+
+</mapper>

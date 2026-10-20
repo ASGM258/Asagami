@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.anime.manager.mapper.CharacterMapper">
+
+    <!-- 结果映射 -->
+    <resultMap id="CharacterResultMap" type="com.anime.manager.entity.Character">
+        <id property="id" column="id"/>
+        <result property="malId" column="mal_id"/>
+        <result property="anilistId" column="anilist_id"/>
+        <result property="name" column="name"/>
+        <result property="nameJp" column="name_jp"/>
+        <result property="imageUrl" column="image_url"/>
+        <result property="about" column="about"/>
+        <result property="nicknames" column="nicknames"/>
+        <result property="birthday" column="birthday"/>
+        <result property="favorites" column="favorites"/>
+        <result property="isLiked" column="isLiked"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+    </resultMap>
+
+    <!--
+      插入角色
+
+      mal_id 列在 AniList 数据源下没有对应值（AniList 不提供 MAL 角色ID），
+      而该列是 NOT NULL。因此依赖列默认值兜底，而不是在 VALUES 里写表达式
+      （INSERT ... VALUES 不允许 NOW() 之外的非字面量表达式，会报语法错误）。
+      详见 migrate_character_anilist.sql。
+    -->
+    <insert id="insert" parameterType="com.anime.manager.entity.Character" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO anime_character (
+            mal_id, anilist_id, name, name_jp, image_url, about, nicknames, birthday, favorites, created_at, updated_at
+        ) VALUES (
+            #{malId}, #{anilistId}, #{name}, #{nameJp}, #{imageUrl}, #{about}, #{nicknames}, #{birthday}, #{favorites}, NOW(), NOW()
+        )
+    </insert>
+
+    <!-- 批量插入角色 -->
+    <insert id="batchInsert" parameterType="java.util.List">
+        INSERT INTO anime_character (
+            mal_id, anilist_id, name, name_jp, image_url, about, nicknames, birthday, favorites, created_at, updated_at
+        ) VALUES
+        <foreach collection="list" item="character" separator=",">
+            (
+                #{character.malId}, #{character.anilistId}, #{character.name}, #{character.nameJp}, 
+                #{character.imageUrl}, #{character.about}, #{character.nicknames}, 
+                #{character.birthday}, #{character.favorites}, NOW(), NOW()
+            )
+        </foreach>
+    </insert>
+
+    <!-- 根据MAL ID查询角色（历史数据，来自 Jikan 时代） -->
+    <select id="findByMalId" resultMap="CharacterResultMap">
+        SELECT * FROM anime_character WHERE mal_id = #{malId} LIMIT 1
+    </select>
+
+    <!-- 根据 AniList 角色ID查询（当前数据源的唯一去重键） -->
+    <select id="findByAnilistId" resultMap="CharacterResultMap">
+        SELECT * FROM anime_character WHERE anilist_id = #{anilistId} LIMIT 1
+    </select>
+
+    <!-- 根据名称查询角色 -->
+    <select id="findByName" resultMap="CharacterResultMap">
+        SELECT * FROM anime_character WHERE name = #{name} LIMIT 1
+    </select>
+
+    <!-- 分页查询角色列表（支持名称模糊搜索） -->
+    <select id="findCharactersPage" resultMap="CharacterResultMap">
+        SELECT 
+            ac.id, 
+            ac.mal_id, 
+            ac.anilist_id, 
+            ac.name, 
+            ac.name_jp, 
+            ac.image_url, 
+            ac.favorites,
+            COALESCE(ufc.favorite_status, 0) AS isLiked
+        FROM anime_character ac
+        LEFT JOIN user_favorite_character ufc ON ac.id = ufc.character_id AND ufc.user_id = #{userId}
+        <where>
+            <if test="name != null and name != ''">
+                AND (ac.name LIKE CONCAT('%', #{name}, '%') OR ac.name_jp LIKE CONCAT('%', #{name}, '%'))
+            </if>
+        </where>
+        ORDER BY ac.favorites DESC, ac.id ASC
+    </select>
+
+    <!-- 根据ID查询角色详情 -->
+    <select id="findCharacterDetailById" resultType="com.anime.manager.vo.CharacterDetailVO$CharacterInfo">
+        SELECT 
+            id,
+            mal_id AS malId,
+            name,
+            name_jp AS nameJp,
+            image_url AS imageUrl,
+            about,
+            nicknames,
+            birthday,
+            favorites
+        FROM anime_character
+        WHERE id = #{characterId}
+        LIMIT 1
+    </select>
+
+    <!-- 分页查询用户喜欢角色历史（只返回favorite_status=1的记录） -->
+    <select id="findUserFavoriteCharacterHistory" resultMap="CharacterResultMap">
+        SELECT 
+            ac.id, 
+            ac.mal_id, 
+            ac.anilist_id, 
+            ac.name, 
+            ac.name_jp, 
+            ac.image_url, 
+            ac.favorites,
+            ufc.favorite_status AS isLiked,
+            ufc.updated_at AS updatedAt
+        FROM user_favorite_character ufc
+        INNER JOIN anime_character ac ON ufc.character_id = ac.id
+        WHERE ufc.user_id = #{userId}
+          AND ufc.favorite_status = 1
+        <if test="name != null and name != ''">
+            AND (ac.name LIKE CONCAT('%', #{name}, '%') OR ac.name_jp LIKE CONCAT('%', #{name}, '%'))
+        </if>
+        ORDER BY ufc.updated_at DESC
+    </select>
+
+</mapper>

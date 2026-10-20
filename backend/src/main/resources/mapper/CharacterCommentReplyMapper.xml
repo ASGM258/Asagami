@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.anime.manager.mapper.CharacterCommentReplyMapper">
+
+    <!-- 结果映射 -->
+    <resultMap id="CharacterCommentReplyResultMap" type="com.anime.manager.entity.CharacterCommentReply">
+        <id property="id" column="id"/>
+        <result property="commentId" column="comment_id"/>
+        <result property="userId" column="user_id"/>
+        <result property="replyToUserId" column="reply_to_user_id"/>
+        <result property="content" column="content"/>
+        <result property="likeCount" column="like_count"/>
+        <result property="dislikeCount" column="dislike_count"/>
+        <result property="createdAt" column="created_at"/>
+    </resultMap>
+
+    <!-- 插入回复 -->
+    <insert id="insert" parameterType="com.anime.manager.entity.CharacterCommentReply" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO character_comment_reply (
+            comment_id, user_id, reply_to_user_id, content, like_count, dislike_count, created_at
+        ) VALUES (
+            #{commentId}, #{userId}, #{replyToUserId}, #{content}, 0, 0, NOW()
+        )
+    </insert>
+
+    <!-- 根据ID查询回复 -->
+    <select id="findById" resultMap="CharacterCommentReplyResultMap">
+        SELECT * FROM character_comment_reply WHERE id = #{id} LIMIT 1
+    </select>
+
+    <!-- 根据评论ID查询回复列表 -->
+    <select id="findByCommentId" resultMap="CharacterCommentReplyResultMap">
+        SELECT * FROM character_comment_reply 
+        WHERE comment_id = #{commentId}
+        ORDER BY created_at ASC
+    </select>
+
+    <!-- 更新回复内容 -->
+    <update id="updateContent">
+        UPDATE character_comment_reply 
+        SET content = #{content}
+        WHERE id = #{id}
+    </update>
+
+    <!-- 删除回复 -->
+    <delete id="deleteById">
+        DELETE FROM character_comment_reply WHERE id = #{id}
+    </delete>
+
+    <!-- 增加点赞数 -->
+    <update id="incrementLikeCount">
+        UPDATE character_comment_reply 
+        SET like_count = like_count + 1 
+        WHERE id = #{id}
+    </update>
+
+    <!-- 减少点赞数 -->
+    <update id="decrementLikeCount">
+        UPDATE character_comment_reply 
+        SET like_count = GREATEST(like_count - 1, 0) 
+        WHERE id = #{id}
+    </update>
+
+    <!-- 根据父回复ID删除所有子回复 -->
+    <delete id="deleteByParentReplyId">
+        DELETE FROM character_comment_reply WHERE parent_reply_id = #{parentReplyId}
+    </delete>
+
+</mapper>

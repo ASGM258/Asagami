@@ -1,0 +1,102 @@
+spring:
+  application:
+    name: backend
+  datasource:
+    url: ${DB_URL:jdbc:mysql://localhost:3306/backend_asagami?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai}
+      # 用户名
+    username: ${DB_USERNAME:root}
+      # 密码
+    password: ${DB_PASSWORD:123456}
+      # 驱动类（MySQL8 用这个，5.x可省略）
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  # 文件上传配置
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
+  data:
+    redis:
+      # Redis服务器地址
+      host: ${REDIS_HOST:localhost}
+      # Redis服务器端口
+      port: ${REDIS_PORT:6379}
+      # Redis密码（如果没有密码可以注释掉）
+      password: ${REDIS_PASSWORD:123456}
+      # 数据库索引（默认0）
+      database: ${REDIS_DATABASE:0}
+      # 连接超时时间
+      timeout: 3000ms
+      # Lettuce连接池配置
+      lettuce:
+        pool:
+          # 最大活跃连接数
+          max-active: 8
+          # 最大空闲连接数
+          max-idle: 8
+          # 最小空闲连接数
+          min-idle: 0
+          # 获取连接时的最大等待时间（毫秒）
+          max-wait: -1ms
+
+# MyBatis配置
+mybatis:
+  # Mapper XML文件位置
+  mapper-locations: classpath:mapper/*.xml
+  configuration:
+    # 开启驼峰命名自动映射（database_column -> javaProperty）
+    map-underscore-to-camel-case: true
+
+# PageHelper分页插件配置
+pagehelper:
+  # 数据库方言（自动检测）
+  helper-dialect: mysql
+  # 合理化分页参数（pageNum<=0 时会查询第一页，pageNum>pages 时会查询最后一页）
+  reasonable: true
+  # 支持通过 Mapper 接口参数来传递分页参数
+  support-methods-arguments: true
+  # 默认false，当设置为true时，如果pageSize=0或者RowBounds.limit = 0就会查询出全部的结果
+  page-size-zero: false
+
+# JWT配置
+jwt:
+  # JWT密钥（生产环境应从环境变量读取）
+  secret: ${JWT_SECRET:animeHistoryManagementSystemSecretKey2026ForJwtTokenGenerationAndValidation}
+  # Token过期时间（毫秒），默认30分钟
+  expiration: ${JWT_EXPIRATION:18000000}
+
+# 阿里云OSS配置
+aliyun:
+  oss:
+    # Endpoint（地域节点，例如：oss-cn-hangzhou.aliyuncs.com）
+    endpoint: ${OSS_ENDPOINT:oss-cn-beijing.aliyuncs.com}
+    # AccessKey ID / Secret：只能通过环境变量注入，**不要写默认值**
+    access-key-id: ${OSS_ACCESS_KEY_ID:}
+    access-key-secret: ${OSS_ACCESS_KEY_SECRET:}
+    # Bucket名称
+    bucket-name: ${OSS_BUCKET_NAME:web-sky-dwk}
+
+# 当季新番 / 动漫详情抓取配置
+scraper:
+  seasonal:
+    # 数据源：AniList GraphQL（原 Jikan API 已不可用）
+    # 需更换数据源时，新增 SeasonalAnimeSource 实现类即可，无需改动业务代码
+    anilist-url: ${ANILIST_URL:https://graphql.anilist.co}
+    # 每页条数（AniList 上限 50）
+    page-size: ${SEASONAL_PAGE_SIZE:50}
+  anime:
+    # 动漫详情数据源：AniList GraphQL（支持 Media(idMal: Int) 查询）
+    anilist-url: ${ANILIST_URL:https://graphql.anilist.co}
+  character:
+    # 角色数据源：AniList GraphQL
+    # 注意：AniList 角色对象没有 MAL ID，标识为 AniList 角色ID
+    anilist-url: ${ANILIST_URL:https://graphql.anilist.co}
+    # 每页条数（AniList 上限 50）
+    page-size: ${CHARACTER_PAGE_SIZE:50}
+
+# Redis配置
+
+server:
+  port: ${SERVER_PORT:8081}
+
+
+

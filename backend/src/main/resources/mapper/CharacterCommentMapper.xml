@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.anime.manager.mapper.CharacterCommentMapper">
+
+    <!-- 结果映射 -->
+    <resultMap id="CharacterCommentResultMap" type="com.anime.manager.entity.CharacterComment">
+        <id property="id" column="id"/>
+        <result property="characterId" column="character_id"/>
+        <result property="userId" column="user_id"/>
+        <result property="content" column="content"/>
+        <result property="likeCount" column="like_count"/>
+        <result property="dislikeCount" column="dislike_count"/>
+        <result property="createdAt" column="created_at"/>
+    </resultMap>
+
+    <!-- 插入评论 -->
+    <insert id="insert" parameterType="com.anime.manager.entity.CharacterComment" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO character_comment (
+            character_id, user_id, content, like_count, dislike_count, created_at
+        ) VALUES (
+            #{characterId}, #{userId}, #{content}, 0, 0, NOW()
+        )
+    </insert>
+
+    <!-- 根据ID查询评论 -->
+    <select id="findById" resultMap="CharacterCommentResultMap">
+        SELECT * FROM character_comment WHERE id = #{id} LIMIT 1
+    </select>
+
+    <!-- 根据角色ID查询评论列表 -->
+    <select id="findByCharacterId" resultMap="CharacterCommentResultMap">
+        SELECT * FROM character_comment 
+        WHERE character_id = #{characterId}
+        ORDER BY created_at DESC
+    </select>
+
+    <!-- 更新评论内容 -->
+    <update id="updateContent">
+        UPDATE character_comment 
+        SET content = #{content}
+        WHERE id = #{id}
+    </update>
+
+    <!-- 删除评论 -->
+    <delete id="deleteById">
+        DELETE FROM character_comment WHERE id = #{id}
+    </delete>
+
+    <!-- 增加点赞数 -->
+    <update id="incrementLikeCount">
+        UPDATE character_comment 
+        SET like_count = like_count + 1 
+        WHERE id = #{id}
+    </update>
+
+    <!-- 减少点赞数 -->
+    <update id="decrementLikeCount">
+        UPDATE character_comment 
+        SET like_count = GREATEST(like_count - 1, 0) 
+        WHERE id = #{id}
+    </update>
+
+</mapper>

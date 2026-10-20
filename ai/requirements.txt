@@ -1,0 +1,38 @@
+# ==================== Web 框架 ====================
+fastapi>=0.115.0
+uvicorn[standard]>=0.30.0
+# 文件上传（FastAPI 的 UploadFile 依赖，缺失会导致启动即报错）
+python-multipart>=0.0.9
+
+# ==================== 配置管理 ====================
+pydantic>=2.7.0
+pydantic-settings>=2.3.0
+python-dotenv>=1.0.0
+
+# ==================== LangChain / LangGraph ====================
+langchain>=1.0.0
+langchain-core>=1.0.0
+langchain-openai>=1.0.0
+langgraph>=1.0.0
+
+# ==================== LangGraph 检查点持久化（PostgreSQL） ====================
+langgraph-checkpoint-postgres>=2.0.0
+psycopg[binary,pool]>=3.2.0
+
+# ==================== 业务数据源（MySQL） ====================
+# 资讯表（news / news_review_log）由本服务读写；anime 等表只读
+mysql-connector-python>=8.0.0
+
+# ==================== 资讯抓取与定时任务 ====================
+feedparser>=6.0.0
+apscheduler>=3.10.0
+
+# ==================== RAG 知识库 ====================
+# 向量库：Chroma 本地持久化
+chromadb>=0.5.0
+langchain-chroma>=0.2.0
+# PDF 解析
+pypdf>=4.0.0
+
+# ==================== 测试 ====================
+pytest>=8.0.0

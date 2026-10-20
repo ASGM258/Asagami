@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.anime.manager.mapper.UserCommentLikeMapper">
+
+    <!-- 检查用户是否已对某条评论点赞 -->
+    <select id="checkLikeExists" resultType="com.anime.manager.entity.UserCommentLike">
+        SELECT 
+            id,
+            user_id AS userId,
+            comment_id AS commentId,
+            level,
+            create_time AS createTime,
+            update_time AS updateTime,
+            is_deleted AS isDeleted
+        FROM user_comment_like
+        WHERE user_id = #{userId} 
+          AND comment_id = #{commentId}
+          AND level = #{level}
+          AND is_deleted = 0
+        LIMIT 1
+    </select>
+
+    <!-- 添加点赞记录 -->
+    <insert id="insert" parameterType="com.anime.manager.entity.UserCommentLike" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO user_comment_like(user_id, comment_id, level, create_time, update_time, is_deleted)
+        VALUES(#{userId}, #{commentId}, #{level}, NOW(), NOW(), 0)
+    </insert>
+
+    <!-- 删除点赞记录（软删除） -->
+    <update id="deleteLike">
+        UPDATE user_comment_like 
+        SET is_deleted = 1, update_time = NOW()
+        WHERE user_id = #{userId} 
+          AND comment_id = #{commentId}
+          AND level = #{level}
+          AND is_deleted = 0
+    </update>
+
+    <!-- 恢复点赞记录（取消软删除） -->
+    <update id="restoreLike">
+        UPDATE user_comment_like 
+        SET is_deleted = 0, update_time = NOW()
+        WHERE user_id = #{userId} 
+          AND comment_id = #{commentId}
+          AND level = #{level}
+          AND is_deleted = 1
+    </update>
+
+    <!-- 批量查询用户在某动漫下的点赞记录 -->
+    <select id="findLikedCommentIdsByUserAndAnime" resultType="com.anime.manager.entity.UserCommentLike">
+        SELECT 
+            id,
+            user_id AS userId,
+            comment_id AS commentId,
+            level,
+            create_time AS createTime,
+            update_time AS updateTime,
+            is_deleted AS isDeleted
+        FROM user_comment_like
+        WHERE user_id = #{userId}
+          AND comment_id IN
+          <foreach collection="commentIds" item="commentId" open="(" separator="," close=")">
+              #{commentId}
+          </foreach>
+          AND level = #{level}
+          AND is_deleted = 0
+    </select>
+
+</mapper>

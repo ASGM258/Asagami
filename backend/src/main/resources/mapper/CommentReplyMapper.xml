@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.anime.manager.mapper.CommentReplyMapper">
+
+    <!-- 根据回复ID查询单个回复 -->
+    <select id="findById" resultType="com.anime.manager.entity.CommentReply">
+        SELECT 
+            id,
+            comment_id AS commentId,
+            user_id AS userId,
+            parent_reply_id AS parentReplyId,
+            content,
+            like_count AS likeCount,
+            dislike_count AS dislikeCount,
+            created_at AS createdAt
+        FROM anime_comment_reply
+        WHERE id = #{id}
+        LIMIT 1
+    </select>
+
+    <!-- 根据主评论ID查询所有回复 -->
+    <select id="findByCommentId" resultType="com.anime.manager.entity.CommentReply">
+        SELECT 
+            id,
+            comment_id AS commentId,
+            user_id AS userId,
+            parent_reply_id AS parentReplyId,
+            content,
+            like_count AS likeCount,
+            dislike_count AS dislikeCount,
+            created_at AS createdAt
+        FROM anime_comment_reply
+        WHERE comment_id = #{commentId}
+        ORDER BY created_at ASC
+    </select>
+
+    <!-- 插入评论回复 -->
+    <insert id="insert" parameterType="com.anime.manager.entity.CommentReply" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO anime_comment_reply(comment_id, user_id, parent_reply_id, content, like_count, dislike_count, created_at)
+        VALUES(#{commentId}, #{userId}, #{parentReplyId}, #{content}, 0, 0, NOW())
+    </insert>
+
+    <!-- 删除回复 -->
+    <delete id="deleteById">
+        DELETE FROM anime_comment_reply WHERE id = #{id}
+    </delete>
+
+    <!-- 根据父回复ID删除所有子回复 -->
+    <delete id="deleteByParentReplyId">
+        DELETE FROM anime_comment_reply WHERE parent_reply_id = #{parentReplyId}
+    </delete>
+
+    <!-- 更新回复内容 -->
+    <update id="updateContent">
+        UPDATE anime_comment_reply SET content = #{content} WHERE id = #{id}
+    </update>
+
+    <!-- 增加点赞数 -->
+    <update id="incrementLikeCount">
+        UPDATE anime_comment_reply SET like_count = like_count + 1 WHERE id = #{id}
+    </update>
+
+    <!-- 减少点赞数 -->
+    <update id="decrementLikeCount">
+        UPDATE anime_comment_reply SET like_count = GREATEST(like_count - 1, 0) WHERE id = #{id}
+    </update>
+
+    <!-- 增加点踩数 -->
+    <update id="incrementDislikeCount">
+        UPDATE anime_comment_reply SET dislike_count = dislike_count + 1 WHERE id = #{id}
+    </update>
+
+    <!-- 减少点踩数 -->
+    <update id="decrementDislikeCount">
+        UPDATE anime_comment_reply SET dislike_count = GREATEST(dislike_count - 1, 0) WHERE id = #{id}
+    </update>
+
+</mapper>

@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.anime.manager.mapper.AnimeMapper">
+
+    <!-- 分页查询动漫简单信息(包含观看状态) -->
+    <select id="findAnimePageWithChineseName" resultType="com.anime.manager.dto.AnimeSimpleDTO">
+        SELECT 
+            a.id,
+            a.title,
+            a.cover_image AS coverImage,
+            a.episodes,
+            a.rating,
+            YEAR(a.release_date) AS releaseYear,
+            COALESCE(ua.watch_status, 0) AS watchStatus
+        FROM anime a
+        LEFT JOIN user_anime ua ON a.id = ua.anime_id AND ua.user_id = #{userId}
+        <where>
+            <if test="title != null and title != ''">
+                AND (
+                    a.title LIKE CONCAT('%', #{title}, '%') 
+                    OR a.title_jp LIKE CONCAT('%', #{title}, '%')
+                )
+            </if>
+            <if test="year != null">
+                AND YEAR(a.release_date) = #{year}
+            </if>
+        </where>
+        ORDER BY 
+            CASE WHEN a.rating IS NULL THEN 1 ELSE 0 END,
+            a.rating DESC
+    </select>
+
+    <!-- 分页查询用户追番历史（只返回user_anime表中存在的记录） -->
+    <select id="findUserWatchHistory" resultType="com.anime.manager.dto.AnimeSimpleDTO">
+        SELECT 
+            a.id,
+            a.title,
+            a.cover_image AS coverImage,
+            a.episodes,
+            a.rating,
+            YEAR(a.release_date) AS releaseYear,
+            ua.watch_status AS watchStatus
+        FROM user_anime ua
+        INNER JOIN anime a ON ua.anime_id = a.id
+        <where>
+            ua.user_id = #{userId}
+            <if test="title != null and title != ''">
+                AND (
+                    a.title LIKE CONCAT('%', #{title}, '%')
+                    OR a.title_jp LIKE CONCAT('%', #{title}, '%')
+                )
+            </if>
+            <if test="year != null">
+                AND YEAR(a.release_date) = #{year}
+            </if>
+        </where>
+        ORDER BY ua.updated_at DESC
+    </select>
+
+    <!-- 查询动漫详情 -->
+    <select id="findAnimeDetailById" resultType="com.anime.manager.vo.AnimeDetailVO$AnimeInfo">
+        SELECT 
+            a.id,
+            a.title,
+            a.cover_image AS coverImage,
+            a.synopsis,
+            a.genres,
+            a.release_date AS releaseDate,
+            a.rating,
+            a.episodes,
+            a.status,
+            COALESCE(ua.watch_status, 0) AS watchStatus
+        FROM anime a
+        LEFT JOIN user_anime ua ON a.id = ua.anime_id AND ua.user_id = #{userId}
+        WHERE a.id = #{animeId}
+    </select>
+
+</mapper>

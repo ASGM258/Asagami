@@ -1,0 +1,161 @@
+/**
+ * 全局二次元主题
+ *
+ * 只放「跨组件复用」的两类东西：
+ *   1. 调色板 CSS 变量（组件里可以直接 var(--anime-xxx)）
+ *   2. Element Plus 组件的外观覆写（分页器等，写在 scoped style 里管不到内部节点）
+ *
+ * 组件自身的布局样式仍然留在各自的 <style scoped> 中。
+ * 注意：本文件必须在 element-plus/dist/index.css 之后导入，同特异性下才能覆盖。
+ */
+
+:root {
+  --anime-sakura: #ff8fb8;
+  --anime-sakura-soft: #ffd0e2;
+  --anime-violet: #9b7bff;
+  --anime-violet-deep: #7b5cf0;
+  --anime-sky: #78d2ff;
+  --anime-ink: #3f3555;
+  --anime-ink-soft: #7b6f96;
+  --anime-gradient: linear-gradient(
+    120deg,
+    var(--anime-sakura) 0%,
+    var(--anime-violet) 55%,
+    var(--anime-sky) 100%
+  );
+  --anime-glass: rgba(255, 255, 255, 0.72);
+  --anime-glass-line: rgba(255, 255, 255, 0.85);
+}
+
+/* ==================== 分页器 ==================== */
+/**
+ * 首页 / 角色 / 历史 / 我的喜欢 四个页面都用 `.pagination-container` 包一个 el-pagination，
+ * 但各自在 scoped <style> 里写死了 rgba(255,255,255,.8) 的白底和 8px 圆角。
+ *
+ * 这里把类名重复一次来提高特异性（0,2,0 高于 scoped 选择器的 0,1,1），
+ * 于是只改这一处就能同时覆盖 4 个页面，不必改 4 遍。
+ */
+.pagination-container.pagination-container {
+  display: flex;
+  justify-content: center;
+  padding: 14px 18px;
+  margin-top: 18px;
+  border-radius: 16px;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.8) 0%,
+    rgba(255, 244, 250, 0.72) 45%,
+    rgba(243, 246, 255, 0.8) 100%
+  );
+  -webkit-backdrop-filter: blur(14px) saturate(160%);
+  backdrop-filter: blur(14px) saturate(160%);
+  border: 1px solid var(--anime-glass-line);
+  box-shadow: 0 8px 24px rgba(123, 92, 240, 0.1);
+  /* 窄屏时横向滚动，而不是把内容挤变形 */
+  overflow-x: auto;
+}
+
+.el-pagination {
+  --el-pagination-bg-color: transparent;
+  --el-pagination-text-color: var(--anime-ink-soft);
+  --el-pagination-button-color: var(--anime-ink-soft);
+  --el-pagination-button-bg-color: rgba(255, 255, 255, 0.72);
+  --el-pagination-hover-color: var(--anime-violet-deep);
+  font-weight: 500;
+
+  .el-pagination__total,
+  .el-pagination__jump,
+  .el-pagination__goto,
+  .el-pagination__classifier {
+    color: var(--anime-ink-soft);
+    font-size: 13px;
+  }
+
+  /* 上下页按钮 + 页码：统一成药丸键帽 */
+  button.btn-prev,
+  button.btn-next,
+  .el-pager li {
+    margin: 0 3px;
+    min-width: 32px;
+    height: 32px;
+    line-height: 32px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.72);
+    border: 1px solid rgba(255, 255, 255, 0.9);
+    color: var(--anime-ink-soft);
+    font-weight: 500;
+    transition: all 0.22s ease;
+  }
+
+  button.btn-prev:hover,
+  button.btn-next:hover,
+  .el-pager li:hover {
+    color: var(--anime-violet-deep);
+    background: linear-gradient(120deg, rgba(255, 143, 184, 0.2), rgba(155, 123, 255, 0.16));
+    border-color: rgba(255, 255, 255, 0.95);
+    transform: translateY(-1px);
+  }
+
+  button.btn-prev:disabled,
+  button.btn-next:disabled {
+    background: rgba(255, 255, 255, 0.45);
+    color: #c3bad4;
+    transform: none;
+  }
+
+  /* 当前页：糖果渐变 + 微光。is-background 变体特异性更高，需单独写一遍 */
+  .el-pager li.is-active,
+  &.is-background .el-pager li.is-active,
+  &.is-background .el-pager li:not(.is-disabled).is-active {
+    color: #fff;
+    font-weight: 700;
+    background: var(--anime-gradient);
+    border-color: transparent;
+    box-shadow: 0 6px 16px rgba(155, 123, 255, 0.35);
+    transform: none;
+  }
+
+  /* 「16/page」下拉与「Go to」输入框 */
+  .el-select .el-select__wrapper,
+  .el-select__wrapper {
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.82);
+    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.95) inset;
+    transition: box-shadow 0.22s ease;
+
+    &:hover,
+    &.is-focused {
+      box-shadow:
+        0 0 0 1px rgba(155, 123, 255, 0.45) inset,
+        0 0 0 3px rgba(155, 123, 255, 0.12);
+    }
+  }
+
+  .el-pagination__jump .el-input__wrapper,
+  .el-pagination__editor .el-input__wrapper {
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.85);
+    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.95) inset;
+    transition: box-shadow 0.22s ease;
+
+    &:hover,
+    &.is-focus {
+      box-shadow:
+        0 0 0 1px rgba(155, 123, 255, 0.45) inset,
+        0 0 0 3px rgba(155, 123, 255, 0.12);
+    }
+  }
+}
+
+/* 小屏：把分页器的左右内边距收一收，避免换行后过于拥挤 */
+@media (max-width: 768px) {
+  .pagination-container.pagination-container {
+    padding: 10px 8px;
+    border-radius: 14px;
+
+    .el-pagination .el-pagination__total,
+    .el-pagination .el-pagination__sizes {
+      margin-right: 6px;
+    }
+  }
+}

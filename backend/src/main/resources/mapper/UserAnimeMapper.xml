@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.anime.manager.mapper.UserAnimeMapper">
+
+    <!-- 根据用户ID和动漫ID查询追番记录 -->
+    <select id="findByUserIdAndAnimeId" resultType="com.anime.manager.entity.UserAnime">
+        SELECT 
+            id,
+            user_id AS userId,
+            anime_id AS animeId,
+            watch_status AS watchStatus,
+            current_episode AS currentEpisode,
+            rating,
+            comment,
+            tags,
+            started_at AS startedAt,
+            finished_at AS finishedAt,
+            created_at AS createdAt,
+            updated_at AS updatedAt
+        FROM user_anime
+        WHERE user_id = #{userId} AND anime_id = #{animeId}
+    </select>
+
+    <!-- 插入追番记录（动态SQL） -->
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO user_anime
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="userId != null">user_id,</if>
+            <if test="animeId != null">anime_id,</if>
+            <if test="watchStatus != null">watch_status,</if>
+            <if test="currentEpisode != null">current_episode,</if>
+            <if test="rating != null">rating,</if>
+            <if test="comment != null">comment,</if>
+            <if test="tags != null">tags,</if>
+            <if test="startedAt != null">started_at,</if>
+            <if test="finishedAt != null">finished_at,</if>
+            created_at,
+            updated_at
+        </trim>
+        <trim prefix="VALUES (" suffix=")" suffixOverrides=",">
+            <if test="userId != null">#{userId},</if>
+            <if test="animeId != null">#{animeId},</if>
+            <if test="watchStatus != null">#{watchStatus},</if>
+            <if test="currentEpisode != null">#{currentEpisode},</if>
+            <if test="rating != null">#{rating},</if>
+            <if test="comment != null">#{comment},</if>
+            <if test="tags != null">#{tags},</if>
+            <if test="startedAt != null">#{startedAt},</if>
+            <if test="finishedAt != null">#{finishedAt},</if>
+            NOW(),
+            NOW()
+        </trim>
+    </insert>
+
+    <!-- 更新追番记录（动态SQL） -->
+    <update id="updateSelective">
+        UPDATE user_anime
+        <set>
+            <if test="watchStatus != null">
+                watch_status = #{watchStatus},
+            </if>
+            <if test="currentEpisode != null">
+                current_episode = #{currentEpisode},
+            </if>
+            <if test="rating != null">
+                rating = #{rating},
+            </if>
+            <if test="comment != null">
+                comment = #{comment},
+            </if>
+            <if test="tags != null">
+                tags = #{tags},
+            </if>
+            <if test="startedAt != null">
+                started_at = #{startedAt},
+            </if>
+            <if test="finishedAt != null">
+                finished_at = #{finishedAt},
+            </if>
+            updated_at = NOW()
+        </set>
+        WHERE id = #{id}
+    </update>
+
+</mapper>
